@@ -4,7 +4,7 @@ export const DEFAULT_PRODUCTS = [
         name: "พระสมเด็จวัดระฆัง (Phra Somdej Wat Rakang)",
         category: "amulet",
         price: 9999,
-        image: "https://sv1.picz.in.th/images/2023/02/09/Lt4D8b.jpg", // Placeholder or generic amulet image
+        image: "https://www.siamrath.co.th/files/styles/750/public/img/20191019/3141f0f7f32f4c9c100155609426617c66917f8b725c9b74300302256722d334.jpg", // Moved Luang Phor Sothon image here for reliability
         desc: "พระสมเด็จวัดระฆัง รุ่นอนุสรณ์ 100 ปี พุทธคุณเมตตามหานิยม แคล้วคลาดปลอดภัย"
     },
     {
@@ -28,7 +28,7 @@ export const DEFAULT_PRODUCTS = [
         name: "กำไลหินมงคลปี่เซียะ (Pixiu Bracelet)",
         category: "accessories",
         price: 890,
-        image: "https://cf.shopee.co.th/file/c8266928864758e57833299763784738",
+        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Phra_Pidta_Pang_Pakan.jpg/640px-Phra_Pidta_Pang_Pakan.jpg", // Fallback to Phra Pidta
         desc: "กำไลหินมงคลพร้อมจี้ปี่เซียะทองคำแท้ 99.99% เรียกทรัพย์ ดูดโชคลาภ ค้าขายร่ำรวย"
     },
     {
@@ -52,7 +52,7 @@ export const DEFAULT_PRODUCTS = [
         name: "สร้อยคอเชือกร่ม (Amulet Necklace)",
         category: "accessories",
         price: 290,
-        image: "https://down-th.img.susercontent.com/file/th-11134207-7qul3-lhx1m4l1a6v14d",
+        image: "https://mpics.mgronline.com/pics/Images/565000000806401.JPEG", // Fallback to Thao Wessuwan
         desc: "สร้อยคอเชือกร่มถักอย่างดี แข็งแรง ทนทาน สำหรับห้อยพระเครื่ององค์โปรดของคุณ"
     },
     {
@@ -60,7 +60,7 @@ export const DEFAULT_PRODUCTS = [
         name: "กล่องใส่พระ (Amulet Box)",
         category: "accessories",
         price: 150,
-        image: "https://down-th.img.susercontent.com/file/c8507301035540306782255474744778",
+        image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Gold_Souq_Dubai.jpg/640px-Gold_Souq_Dubai.jpg", // Generic Gold
         desc: "กล่องสแตนเลสใส่พระเครื่อง บุฟองน้ำกันกระแทกอย่างดี ปกป้องพระเครื่องของคุณ"
     }
 ];
