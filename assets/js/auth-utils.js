@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { collection, addDoc, getDocs, doc, updateDoc, onSnapshot, query, where, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, onSnapshot, query, where, orderBy, deleteDoc } from 'firebase/firestore';
 
 const COLLECTION_NAME = 'users';
 const STORAGE_KEYS = {
@@ -155,6 +155,17 @@ function updateAuthUI() {
     }
 }
 
+
+async function deleteUser(userId) {
+    if (!userId) return;
+    try {
+        await deleteDoc(doc(db, COLLECTION_NAME, userId));
+    } catch (error) {
+        console.error("Error deleting user:", error);
+        throw error;
+    }
+}
+
 function logout() {
     if (confirm('ต้องการออกจากระบบใช่หรือไม่?')) {
         localStorage.removeItem(STORAGE_KEYS.IS_LOGGED_IN);
@@ -174,5 +185,5 @@ window.authSystem = {
     updateAuthUI
 };
 
-export { initAuthSystem, initUserListener, registerUser, loginUser, getCurrentUser, updateAuthUI, logout };
+export { initAuthSystem, initUserListener, registerUser, loginUser, getCurrentUser, updateAuthUI, logout, deleteUser };
 

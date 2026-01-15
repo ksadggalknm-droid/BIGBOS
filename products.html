@@ -201,28 +201,55 @@
         </div>
     </header>
 
-    <main class="py-8 px-4 md:px-10 lg:px-20 max-w-7xl mx-auto">
-        <div class="mb-8 border-b border-[#e5e5e5] pb-4">
-            <h1 class="text-4xl font-black mb-2">วัตถุมงคล (Amulets)</h1>
-            <p class="text-gray-500">ศูนย์รวมพระเครื่องและวัตถุมงคลแท้ 100% คัดสรรด้วยความเชี่ยวชาญ</p>
+    <main class="min-h-screen bg-background-light dark:bg-background-dark pb-20">
+        <!-- Premium Page Header -->
+        <div class="relative bg-black py-16 sm:py-24">
+            <div class="absolute inset-0 overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-black via-[#111] to-[#222]"></div>
+                <!-- Subtle Gold Pattern/Glow -->
+                <div class="absolute top-0 right-0 -mr-20 -mt-20 h-96 w-96 rounded-full bg-primary/10 blur-3xl filter">
+                </div>
+            </div>
+            <div class="relative mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+                <h1
+                    class="text-4xl font-black uppercase tracking-tight text-white sm:text-5xl md:text-6xl drop-shadow-lg">
+                    วัตถุมงคล <span class="text-primary">(Amulets)</span>
+                </h1>
+                <p class="mx-auto mt-4 max-w-xl text-lg text-gray-300">
+                    ศูนย์รวมพระเครื่องและวัตถุมงคลแท้ 100% คัดสรรด้วยความเชี่ยวชาญ เปี่ยมด้วยพุทธคุณ
+                </p>
+            </div>
         </div>
 
-        <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-            <button onclick="filterProducts('all')" data-category="all"
-                class="px-4 py-2 bg-primary text-white rounded-full text-sm font-bold whitespace-nowrap">ทั้งหมด</button>
-            <button onclick="filterProducts('amulet')" data-category="amulet"
-                class="px-4 py-2 bg-white border hover:bg-gray-100 rounded-full text-sm font-bold whitespace-nowrap">พระเครื่อง
-                (Amulets)</button>
-            <button onclick="filterProducts('statue')" data-category="statue"
-                class="px-4 py-2 bg-white border hover:bg-gray-100 rounded-full text-sm font-bold whitespace-nowrap">พระบูชา
-                (Statues)</button>
-            <button onclick="filterProducts('accessories')" data-category="accessories"
-                class="px-4 py-2 bg-white border hover:bg-gray-100 rounded-full text-sm font-bold whitespace-nowrap">อุปกรณ์
-                (Accessories)</button>
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
+            <!-- Glass Filter Bar -->
+            <div
+                class="flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/10 p-2 backdrop-blur-xl shadow-xl dark:bg-black/40">
+                <button onclick="filterProducts('all')" data-category="all"
+                    class="px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 hover:bg-white/20 hover:text-white text-gray-700 bg-white shadow-sm dark:bg-white dark:text-black">
+                    ทั้งหมด
+                </button>
+                <button onclick="filterProducts('amulet')" data-category="amulet"
+                    class="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-300 hover:bg-white/20">
+                    พระเครื่อง (Amulets)
+                </button>
+                <button onclick="filterProducts('statue')" data-category="statue"
+                    class="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-300 hover:bg-white/20">
+                    พระบูชา (Statues)
+                </button>
+                <button onclick="filterProducts('accessories')" data-category="accessories"
+                    class="px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-300 hover:bg-white/20">
+                    อุปกรณ์ (Accessories)
+                </button>
+            </div>
         </div>
 
-        <div id="product-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        </div>
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-12">
+
+
+
+            <div id="product-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            </div>
     </main>
 
     <div id="toast">เพิ่มสินค้าลงตะกร้าแล้ว!</div>
@@ -248,19 +275,42 @@
                 let html = '';
                 productList.forEach(product => {
                     html += `
-                <div class="group flex flex-col rounded-xl bg-white shadow-sm hover:shadow-xl transition-all border border-gray-200 overflow-hidden">
-                    <div class="relative w-full h-64 bg-gray-100 p-4">
-                        <img src="${product.image}" alt="${product.name}" class="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110">
-                    </div>
-                    <div class="flex flex-col flex-1 p-5 gap-3">
-                        <div>
-                            <h3 class="text-lg font-bold text-primary group-hover:text-gray-700">${product.name}</h3>
-                            <p class="text-xs text-gray-500 mt-1 line-clamp-2">${product.desc}</p>
+                <div class="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 dark:bg-[#222] border border-gray-100 dark:border-gray-800">
+                    <!-- Image Area -->
+                    <div class="relative aspect-square w-full overflow-hidden bg-gray-50 dark:bg-[#1a1a1a] p-6">
+                        <img src="${product.image}" alt="${product.name}" 
+                             class="h-full w-full object-contain mix-blend-multiply dark:mix-blend-normal transition-transform duration-700 group-hover:scale-110">
+                        
+                        <!-- Quick Action overlay -->
+                        <div class="absolute inset-x-0 bottom-0 p-4 translate-y-full transition-transform duration-300 group-hover:translate-y-0">
+                            <button onclick="addToCart('${product.id}')" 
+                                class="w-full rounded-xl bg-primary py-3 text-sm font-bold text-white shadow-lg transition-colors hover:bg-primary-hover active:scale-95 flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+                                เพิ่มลงตะกร้า
+                            </button>
                         </div>
-                        <div class="mt-auto">
-                            <p class="text-xl font-black text-primary">฿${product.price ? product.price.toLocaleString() : '0'}</p>
-                            <button onclick="addToCart('${product.id}')" class="mt-3 w-full h-10 flex items-center justify-center gap-2 rounded-lg bg-primary text-white text-sm font-bold hover:bg-black transition-colors active:scale-95">
-                                <span class="material-symbols-outlined text-[18px]">shopping_cart</span> ใส่ตะกร้า
+                    </div>
+
+                    <!-- Content -->
+                    <div class="flex flex-1 flex-col p-5">
+                        <div class="mb-2">
+                            <span class="inline-block rounded-md bg-gray-100 dark:bg-[#333] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                ${product.category}
+                            </span>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 group-hover:text-primary dark:text-gray-100 line-clamp-1" title="${product.name}">
+                            ${product.name}
+                        </h3>
+                        <p class="mt-1 text-xs text-gray-500 line-clamp-2 min-h-[2.5em]">${product.desc}</p>
+                        
+                        <div class="mt-4 flex items-center justify-between border-t border-gray-100 dark:border-gray-700 pt-4">
+                            <div class="flex flex-col">
+                                <span class="text-xs text-gray-400">ราคา</span>
+                                <span class="text-xl font-black text-primary">฿${product.price ? product.price.toLocaleString() : '0'}</span>
+                            </div>
+                            <button onclick="addToCart('${product.id}')" 
+                                class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-colors hover:bg-primary hover:text-white dark:bg-[#333] dark:text-gray-300 lg:hidden">
+                                <span class="material-symbols-outlined text-[20px]">add</span>
                             </button>
                         </div>
                     </div>
@@ -405,9 +455,9 @@
             buttons.forEach(btn => {
                 const btnCat = btn.dataset.category;
                 if (btnCat === category) {
-                    btn.className = "px-4 py-2 bg-primary text-white rounded-full text-sm font-bold whitespace-nowrap";
+                    btn.className = "px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 bg-white text-primary shadow-lg scale-105";
                 } else {
-                    btn.className = "px-4 py-2 bg-white border hover:bg-gray-100 rounded-full text-sm font-bold whitespace-nowrap";
+                    btn.className = "px-6 py-2.5 rounded-xl text-sm font-bold text-white transition-all duration-300 hover:bg-white/20";
                 }
             });
         }
