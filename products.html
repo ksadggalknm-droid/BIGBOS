@@ -268,6 +268,22 @@
             const container = document.getElementById('product-container');
             container.innerHTML = ''; // ล้างของเก่า
 
+            // NORMALIZE DATA: Fix legacy categories to match new IDs
+            products = products.map(p => {
+                let cat = p.category ? p.category.toLowerCase() : 'other';
+                // Legacy Map
+                if (cat === 'somtum' || cat === 'พระเครื่อง') cat = 'amulet';
+                if (cat === 'side' || cat === 'เครื่องราง') cat = 'statue';
+                if (cat === 'drink' || cat === 'อุปกรณ์') cat = 'accessories';
+                return { ...p, category: cat };
+            });
+
+            // Case 1: Loading
+            if (!products) {
+                container.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">กำลังโหลดสินค้า...</div>';
+                return;
+            }
+
             const searchLower = searchQuery ? searchQuery.toLowerCase() : '';
 
             // Helper to render a grid of products
