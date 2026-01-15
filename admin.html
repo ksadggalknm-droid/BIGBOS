@@ -334,9 +334,9 @@
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5">หมวดหมู่</label>
                             <select id="p_category"
                                 class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#222] focus:ring-2 focus:ring-primary/20 focus:border-primary px-4 py-2.5 text-sm font-medium dark:text-white">
-                                <option value="somtum">พระเครื่อง (Amulets)</option>
-                                <option value="side">เครื่องราง (Talismans)</option>
-                                <option value="drink">อุปกรณ์ (Accessories)</option>
+                                <option value="amulet">พระเครื่อง (Amulets)</option>
+                                <option value="statue">พระบูชา (Statues)</option>
+                                <option value="accessories">อุปกรณ์ (Accessories)</option>
                             </select>
                         </div>
                         <div>
@@ -480,6 +480,16 @@
             empty.classList.add('hidden');
 
             products.forEach(p => {
+                const categoryMap = {
+                    'amulet': 'พระเครื่อง',
+                    'statue': 'พระบูชา',
+                    'accessories': 'อุปกรณ์',
+                    'somtum': 'พระเครื่อง', // Legacy fallback
+                    'side': 'พระบูชา', // Legacy fallback
+                    'drink': 'อุปกรณ์'  // Legacy fallback
+                };
+                const displayCategory = categoryMap[p.category] || p.category;
+
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-gray-50 dark:hover:bg-[#1f1f1f] transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0 group';
                 tr.innerHTML = `
@@ -491,7 +501,7 @@
                     <td class="p-5 font-bold text-gray-900 dark:text-white">${p.name}</td>
                     <td class="p-5">
                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 dark:bg-[#333] text-gray-800 dark:text-gray-300 uppercase">
-                         ${p.category}
+                         ${displayCategory}
                        </span>
                     </td>
                     <td class="p-5 font-bold text-primary">฿${p.price.toLocaleString()}</td>
