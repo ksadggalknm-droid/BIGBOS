@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html class="light" lang="th">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>ชำระเงิน - BIGBOS</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@300;400;500;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script src="assets/js/tailwind-config.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
+        }
+    }
+    </script>
+</head>
+
+<body class="bg-[#f9fafb] text-primary font-display min-h-screen">
+
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <div class="flex items-center gap-2 mb-6">
+            <a href="products.html" class="flex items-center text-gray-500 hover:text-primary">
+                <span class="material-symbols-outlined">arrow_back</span> เลือกซื้อต่อ
+            </a>
+            <h1 class="text-2xl font-bold ml-auto">ยืนยันคำสั่งซื้อ</h1>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined">shopping_cart</span> สินค้าในตะกร้า
+                    </h2>
+                    <div id="cart-items" class="space-y-4">
+                        <p class="text-center text-gray-400 py-4">ไม่มีสินค้าในตะกร้า</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined">local_shipping</span> ข้อมูลจัดส่ง
+                    </h2>
+                    <form id="checkout-form" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">ชื่อ-นามสกุล</label>
+                                <input type="text" id="ship_name" required
+                                    class="w-full rounded-lg border-gray-300 focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">เบอร์โทรศัพท์</label>
+                                <input type="tel" id="ship_phone" required placeholder="0812035307"
+                                    class="w-full rounded-lg border-gray-300 focus:ring-primary focus:border-primary">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">ที่อยู่จัดส่ง</label>
+                            <textarea id="ship_address" required rows="3"
+                                placeholder="บ้านเลขที่, ถนน, ตำบล, อำเภอ, จังหวัด"
+                                class="w-full rounded-lg border-gray-300 focus:ring-primary focus:border-primary"></textarea>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 sticky top-4">
+                    <h2 class="text-lg font-bold mb-4">วิธีชำระเงิน</h2>
+
+                    <div class="space-y-3 mb-6">
+                        <label
+                            class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 has-[:checked]:border-primary has-[:checked]:bg-gray-50">
+                            <input type="radio" name="payment" value="qr" class="text-primary focus:ring-primary"
+                                checked onchange="togglePayment('qr')">
+                            <div class="ml-3">
+                                <span class="block font-medium">สแกน QR Code</span>
+                                <span class="block text-xs text-gray-500">โอนเงินผ่านธนาคาร</span>
+                            </div>
+                        </label>
+
+                        <div id="qr-section" class="p-4 bg-gray-100 rounded-lg flex flex-col items-center text-center">
+                            <p class="text-sm font-bold mb-2">สแกนเพื่อชำระเงิน</p>
+                            <img id="qr-image" src="" alt="Payment QR"
+                                class="w-40 h-40 bg-white p-2 rounded shadow-sm object-contain">
+                            <p class="text-sm font-bold mt-2 text-primary">ชื่อบัญชี: ธนากร ลดกระโทก</p>
+                            <p class="text-xs text-red-500 mt-1">*กรุณาแนบสลิปหลังสั่งซื้อ</p>
+                        </div>
+
+                        <label
+                            class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 has-[:checked]:border-primary has-[:checked]:bg-gray-50">
+                            <input type="radio" name="payment" value="cod" class="text-primary focus:ring-primary"
+                                onchange="togglePayment('cod')">
+                            <div class="ml-3">
+                                <span class="block font-medium">เก็บเงินปลายทาง (COD)</span>
+                                <span class="block text-xs text-gray-500">จ่ายเงินเมื่อรับของ (+3%)</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="border-t pt-4 space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">ราคาสินค้า</span>
+                            <span id="subtotal">฿0</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">ค่าจัดส่ง</span>
+                            <span>฿100</span>
+                        </div>
+                        <div class="flex justify-between text-xl font-black mt-4">
+                            <span>ยอดรวม</span>
+                            <span id="total" class="text-primary">฿0</span>
+                        </div>
+                    </div>
+
+                    <button onclick="placeOrder()"
+                        class="w-full mt-6 bg-primary text-white py-3 rounded-lg font-bold hover:bg-black transition-transform active:scale-95 shadow-lg">
+                        ยืนยันการสั่งซื้อ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getCurrentUser } from './assets/js/auth-utils.js';
+
+        // Attach global functions to window
+        window.togglePayment = togglePayment;
+        window.placeOrder = placeOrder;
+        window.updateQty = updateQty;
+        window.removeItem = removeItem;
+        window.loadCart = loadCart;
+
+        let currentTotal = 0;
+        // ฟังก์ชันสำหรับเจน QR Code พร้อมเพย์ตามยอดเงินจริง
+        function updatePromptPayQR(amount) {
+            // ⚠️ เปลี่ยนเบอร์นี้เป็นเบอร์พร้อมเพย์ของคุณ
+            const myPromptPayID = "0812035307";
+            const qrImage = document.getElementById('qr-image');
+
+            if (amount > 0) {
+                // ดึงรูป QR Code จาก API โดยระบุเบอร์และยอดเงิน
+                qrImage.src = `https://promptpay.io/${myPromptPayID}/${amount}`;
+            }
+        }
+        function loadCart() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const container = document.getElementById('cart-items');
+            let subtotal = 0;
+
+            if (cart.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-400">ยังไม่มีสินค้าในตะกร้า <br> <a href="products.html" class="text-primary underline">ไปเลือกซื้อเลย</a></div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            cart.forEach((item, index) => {
+                subtotal += item.price * item.quantity;
+                container.innerHTML += `
+                <div class="flex gap-4 py-4 border-b last:border-0">
+                    <img src="${item.image}" class="w-20 h-20 object-contain bg-gray-100 rounded-md">
+                    <div class="flex-1">
+                        <h3 class="font-bold text-sm">${item.name}</h3>
+                        <p class="text-gray-500 text-xs">${item.price.toLocaleString()} บาท</p>
+                        <div class="flex items-center gap-3 mt-2">
+                            <button onclick="updateQty(${index}, -1)" class="w-6 h-6 rounded bg-gray-200 hover:bg-gray-300 flex items-center justify-center">-</button>
+                            <span class="text-sm font-medium w-4 text-center">${item.quantity}</span>
+                            <button onclick="updateQty(${index}, 1)" class="w-6 h-6 rounded bg-gray-200 hover:bg-gray-300 flex items-center justify-center">+</button>
+                            <button onclick="removeItem(${index})" class="text-red-500 text-xs ml-auto hover:underline">ลบ</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            });
+
+            currentTotal = subtotal + 100;
+            document.getElementById('subtotal').innerText = '฿' + subtotal.toLocaleString();
+            document.getElementById('total').innerText = '฿' + currentTotal.toLocaleString();
+
+            updatePromptPayQR(currentTotal);
+        }
+
+        function updateQty(index, change) {
+            let cart = JSON.parse(localStorage.getItem('cart'));
+            cart[index].quantity += change;
+            if (cart[index].quantity < 1) cart[index].quantity = 1;
+            localStorage.setItem('cart', JSON.stringify(cart));
+            loadCart();
+        }
+
+        function removeItem(index) {
+            let cart = JSON.parse(localStorage.getItem('cart'));
+            cart.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            loadCart();
+        }
+
+        function togglePayment(method) {
+            document.getElementById('qr-section').classList.toggle('hidden', method !== 'qr');
+        }
+
+        function placeOrder() {
+            // 1. เช็คว่าล็อกอินยัง
+            const user = getCurrentUser();
+
+            if (!user) return alert('กรุณาเข้าสู่ระบบก่อนสั่งซื้อ');
+
+            // Use username from the object
+            const username = user.username;
+
+            // 2. เช็คตะกร้า
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            if (cart.length === 0) return alert('ตะกร้าว่างเปล่า');
+
+            // 3. เช็คที่อยู่
+            const name = document.getElementById('ship_name').value;
+            const phone = document.getElementById('ship_phone').value;
+            const address = document.getElementById('ship_address').value;
+            if (!name || !phone || !address) return alert('กรุณากรอกข้อมูลจัดส่งให้ครบ');
+
+            if (confirm('ยืนยันการสั่งซื้อหรือไม่?')) {
+                // 4. สร้างบิล - Note: Real app should save to Firestore 'orders' collection too
+                const newOrder = {
+                    id: 'ORD-' + Date.now().toString().slice(-6),
+                    date: new Date().toLocaleDateString('th-TH') + ' ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+                    items: cart,
+                    total: currentTotal,
+                    user: username,
+                    paymentMethod: document.querySelector('input[name="payment"]:checked').value === 'qr' ? 'โอนเงิน (QR)' : 'เก็บปลายทาง (COD)',
+                    status: 'รอตรวจสอบ'
+                };
+
+                // 5. บันทึกบิลลงเครื่อง (Legacy) - You might want to move this to Firestore later
+                let orderHistory = JSON.parse(localStorage.getItem('order_history')) || [];
+                orderHistory.push(newOrder);
+                localStorage.setItem('order_history', JSON.stringify(orderHistory));
+
+                // 6. ล้างตะกร้า + ไปหน้าประวัติ
+                localStorage.removeItem('cart');
+                alert('🎉 สั่งซื้อสำเร็จ! เลขที่ใบสั่งซื้อ: ' + newOrder.id);
+                window.location.href = 'history.html';
+            }
+        }
+
+        loadCart();
+    </script>
+
+</body>
+
+</html>
