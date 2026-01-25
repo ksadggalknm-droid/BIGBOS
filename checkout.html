@@ -132,6 +132,7 @@
 
     <script type="module">
         import { getCurrentUser } from './assets/js/auth-utils.js';
+        import { placeOrder as placeOrderUtils } from './assets/js/orders-utils.js';
 
         // Attach global functions to window
         window.togglePayment = togglePayment;
@@ -159,24 +160,33 @@
 
             if (cart.length === 0) {
                 container.innerHTML = '<div class="text-center py-8 text-gray-400">ยังไม่มีสินค้าในตะกร้า <br> <a href="products.html" class="text-primary underline">ไปเลือกซื้อเลย</a></div>';
+                document.getElementById('subtotal').innerText = '฿0';
+                document.getElementById('total').innerText = '฿0';
+                currentTotal = 0;
                 return;
             }
 
             container.innerHTML = '';
             cart.forEach((item, index) => {
-                subtotal += item.price * item.quantity;
+                const itemTotal = (item.price || 0) * item.quantity;
+                subtotal += itemTotal;
                 container.innerHTML += `
-                <div class="flex gap-4 py-4 border-b last:border-0">
-                    <img src="${item.image}" class="w-20 h-20 object-contain bg-gray-100 rounded-md">
-                    <div class="flex-1">
-                        <h3 class="font-bold text-sm">${item.name}</h3>
-                        <p class="text-gray-500 text-xs">${item.price.toLocaleString()} บาท</p>
-                        <div class="flex items-center gap-3 mt-2">
-                            <button onclick="updateQty(${index}, -1)" class="w-6 h-6 rounded bg-gray-200 hover:bg-gray-300 flex items-center justify-center">-</button>
-                            <span class="text-sm font-medium w-4 text-center">${item.quantity}</span>
-                            <button onclick="updateQty(${index}, 1)" class="w-6 h-6 rounded bg-gray-200 hover:bg-gray-300 flex items-center justify-center">+</button>
-                            <button onclick="removeItem(${index})" class="text-red-500 text-xs ml-auto hover:underline">ลบ</button>
+                <div class="flex gap-4 py-4 border-b last:border-0 items-start">
+                    <img src="${item.image}" class="w-20 h-20 object-contain bg-gray-100 rounded-md border border-gray-200" onerror="this.src='https://via.placeholder.com/100'">
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-sm text-gray-900 truncate">${item.name}</h3>
+                        <p class="text-gray-500 text-xs mt-0.5">${Number(item.price).toLocaleString()} บาท</p>
+                        <div class="flex items-center gap-3 mt-3">
+                            <div class="flex items-center border border-gray-300 rounded-lg">
+                                <button onclick="updateQty(${index}, -1)" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-l-lg">-</button>
+                                <span class="text-sm font-medium w-8 text-center">${item.quantity}</span>
+                                <button onclick="updateQty(${index}, 1)" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-r-lg">+</button>
+                            </div>
+                            <button onclick="removeItem(${index})" class="text-xs text-red-500 hover:text-red-700 underline decoration-red-500/30">ลบ</button>
                         </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm font-bold text-gray-900">฿${itemTotal.toLocaleString()}</span>
                     </div>
                 </div>
             `;
@@ -208,14 +218,15 @@
             document.getElementById('qr-section').classList.toggle('hidden', method !== 'qr');
         }
 
-        function placeOrder() {
+        async function placeOrder() {
             // 1. เช็คว่าล็อกอินยัง
             const user = getCurrentUser();
 
-            if (!user) return alert('กรุณาเข้าสู่ระบบก่อนสั่งซื้อ');
-
-            // Use username from the object
-            const username = user.username;
+            if (!user) {
+                alert('กรุณาเข้าสู่ระบบก่อนสั่งซื้อ');
+                window.location.href = 'login.html';
+                return;
+            }
 
             // 2. เช็คตะกร้า
             const cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -228,30 +239,38 @@
             if (!name || !phone || !address) return alert('กรุณากรอกข้อมูลจัดส่งให้ครบ');
 
             if (confirm('ยืนยันการสั่งซื้อหรือไม่?')) {
-                // 4. สร้างบิล - Note: Real app should save to Firestore 'orders' collection too
-                const newOrder = {
-                    id: 'ORD-' + Date.now().toString().slice(-6),
-                    date: new Date().toLocaleDateString('th-TH') + ' ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
-                    items: cart,
-                    total: currentTotal,
-                    user: username,
-                    paymentMethod: document.querySelector('input[name="payment"]:checked').value === 'qr' ? 'โอนเงิน (QR)' : 'เก็บปลายทาง (COD)',
-                    status: 'รอตรวจสอบ'
-                };
+                const btn = document.querySelector('button[onclick="placeOrder()"]');
+                const oldText = btn.innerText;
+                btn.innerText = 'กำลังดำเนินการ...';
+                btn.disabled = true;
 
-                // 5. บันทึกบิลลงเครื่อง (Legacy) - You might want to move this to Firestore later
-                let orderHistory = JSON.parse(localStorage.getItem('order_history')) || [];
-                orderHistory.push(newOrder);
-                localStorage.setItem('order_history', JSON.stringify(orderHistory));
+                try {
+                    const orderData = {
+                        items: cart,
+                        total: currentTotal,
+                        user: user.username,
+                        customerName: name,
+                        customerPhone: phone,
+                        customerAddress: address,
+                        paymentMethod: document.querySelector('input[name="payment"]:checked').value === 'qr' ? 'โอนเงิน (QR)' : 'เก็บปลายทาง (COD)',
+                        dateStr: new Date().toLocaleDateString('th-TH') + ' ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+                    };
 
-                // 6. ล้างตะกร้า + ไปหน้าประวัติ
-                localStorage.removeItem('cart');
-                alert('🎉 สั่งซื้อสำเร็จ! เลขที่ใบสั่งซื้อ: ' + newOrder.id);
-                window.location.href = 'history.html';
+                    const newOrder = await placeOrderUtils(orderData);
+
+                    // 6. ล้างตะกร้า + ไปหน้าประวัติ
+                    localStorage.removeItem('cart');
+                    alert('🎉 สั่งซื้อสำเร็จ! เลขที่ใบสั่งซื้อ: ' + newOrder.id);
+                    window.location.href = 'history.html'; // Ensure this page exists or redirect to products
+                } catch (e) {
+                    alert('เกิดข้อผิดพลาด: ' + e.message);
+                    btn.innerText = oldText;
+                    btn.disabled = false;
+                }
             }
         }
 
-        loadCart();
+        document.addEventListener('DOMContentLoaded', loadCart);
     </script>
 
 </body>

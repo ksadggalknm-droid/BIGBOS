@@ -1,3 +1,6 @@
+// Local Product System (No Firebase)
+import { DEFAULT_PRODUCTS } from './products-data.js';
+
 const STORAGE_KEYS = {
     PRODUCTS_DB: 'bigbos_products_db'
 };

@@ -78,6 +78,13 @@
                     class="material-symbols-rounded text-[22px] transition-transform group-hover:scale-110">group</span>
                 <span class="font-medium">จัดการสมาชิก (Members)</span>
             </button>
+
+            <button onclick="switchTab('orders')" id="nav-orders"
+                class="sidebar-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 hover:bg-white/10 text-gray-300 hover:text-white group">
+                <span
+                    class="material-symbols-rounded text-[22px] transition-transform group-hover:scale-110">shopping_cart</span>
+                <span class="font-medium">รายการสั่งซื้อ (Orders)</span>
+            </button>
         </nav>
 
         <!-- User Profile (Bottom Sidebar) -->
@@ -284,9 +291,59 @@
                             </table>
                         </div>
                     </div>
-                </div>
+                    <!-- Section: Orders -->
+                    <div id="section-orders" class="hidden space-y-6 animate-fade-in">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                    <span class="material-symbols-rounded text-indigo-500">shopping_cart</span>
+                                    รายการสั่งซื้อ
+                                </h2>
+                                <p class="text-sm text-gray-500">จัดการคำสั่งซื้อของลูกค้า</p>
+                            </div>
+                        </div>
 
-            </div>
+                        <div
+                            class="bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead>
+                                        <tr
+                                            class="bg-gray-50/50 dark:bg-[#222]/50 border-b border-gray-100 dark:border-gray-800">
+                                            <th class="p-5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                Order ID</th>
+                                            <th class="p-5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                Customer</th>
+                                            <th class="p-5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                Date</th>
+                                            <th class="p-5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                Status</th>
+                                            <th class="p-5 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                Total</th>
+                                            <th
+                                                class="p-5 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="orders-table-body" class="divide-y divide-gray-100 dark:divide-gray-800">
+                                        <!-- Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="orders-empty-state"
+                                class="hidden py-16 flex flex-col items-center justify-center text-center">
+                                <div
+                                    class="w-16 h-16 bg-gray-50 dark:bg-[#222] rounded-full flex items-center justify-center mb-4">
+                                    <span
+                                        class="material-symbols-rounded text-gray-300 text-3xl">remove_shopping_cart</span>
+                                </div>
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">ไม่มีคำสั่งซื้อ</h3>
+                                <p class="text-gray-500 text-sm mt-1">ยังไม่มีลูกค้าทำการสั่งซื้อเข้ามา</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
         </main>
     </div>
 
@@ -373,6 +430,7 @@
     <script type="module">
         import { initUserListener, getCurrentUser, logout, deleteUser as deleteUserFromAuth } from './assets/js/auth-utils.js';
         import { initProductListener, saveProduct, deleteProduct as deleteProductUtils, restoreDefaultProducts } from './assets/js/products-utils.js';
+        import { initOrderListener, updateOrderStatus } from './assets/js/orders-utils.js';
 
         // Globals
         window.switchTab = switchTab;
@@ -380,6 +438,15 @@
             if (confirm('ต้องการออกจากระบบ?')) {
                 await logout();
                 window.location.href = 'index.html';
+            }
+        };
+        window.changeOrderStatus = async function (id, newStatus) {
+            if (confirm('ยืนยันการเปลี่ยนสถานะ?')) {
+                try {
+                    await updateOrderStatus(id, newStatus);
+                } catch (e) {
+                    alert('Error: ' + e.message);
+                }
             }
         };
         window.restoreData = async function () {
@@ -418,6 +485,11 @@
                 updateStats('products', products.length);
             });
 
+            initOrderListener((orders) => {
+                renderOrdersTable(orders);
+                updateStats('orders', orders.length);
+            });
+
             // Set initial tab
             switchTab('dashboard');
         });
@@ -432,6 +504,7 @@
         function updateStats(type, count) {
             if (type === 'members') document.getElementById('dash-total-members').textContent = count;
             if (type === 'products') document.getElementById('dash-total-products').textContent = count;
+            if (type === 'orders') document.getElementById('dash-total-orders').textContent = count;
         }
 
         function switchTab(tab) {
@@ -448,7 +521,7 @@
             }
 
             // Hide/Show Sections
-            ['dashboard', 'products', 'members'].forEach(s => {
+            ['dashboard', 'products', 'members', 'orders'].forEach(s => {
                 const el = document.getElementById(`section-${s}`);
                 if (el) {
                     if (s === tab) el.classList.remove('hidden');
@@ -548,6 +621,58 @@
                             <span class="material-symbols-rounded">delete</span>
                         </button>
                         ` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderOrdersTable(orders) {
+            const tbody = document.getElementById('orders-table-body');
+            const empty = document.getElementById('orders-empty-state');
+            tbody.innerHTML = '';
+
+            if (orders.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            orders.forEach(o => {
+                const statusColors = {
+                    'pending': 'bg-yellow-100 text-yellow-700',
+                    'paid': 'bg-blue-100 text-blue-700',
+                    'shipped': 'bg-purple-100 text-purple-700',
+                    'completed': 'bg-green-100 text-green-700',
+                    'cancelled': 'bg-red-100 text-red-700'
+                };
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 dark:hover:bg-[#1f1f1f] transition-colors border-b border-gray-100 dark:border-gray-800 last:border-0';
+
+                tr.innerHTML = `
+                    <td class="p-5 font-mono text-xs font-bold">${o.id}</td>
+                    <td class="p-5">
+                        <div class="font-bold text-sm">${o.customerName || o.user}</div>
+                        <div class="text-xs text-gray-500">${o.customerPhone || ''}</div>
+                    </td>
+                    <td class="p-5 text-sm text-gray-500">
+                        ${o.dateStr || new Date(o.createdAt).toLocaleDateString()}
+                    </td>
+                    <td class="p-5">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold ${statusColors[o.status] || 'bg-gray-100'} uppercase">
+                            ${o.status}
+                        </span>
+                    </td>
+                    <td class="p-5 font-bold text-primary">฿${Number(o.total).toLocaleString()}</td>
+                    <td class="p-5 text-right">
+                        <select onchange="changeOrderStatus('${o.id}', this.value)" class="text-xs border-gray-200 rounded-lg py-1 pl-2 pr-6 focus:ring-primary focus:border-primary">
+                            <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="paid" ${o.status === 'paid' ? 'selected' : ''}>Paid</option>
+                            <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                            <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>Completed</option>
+                            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
                     </td>
                 `;
                 tbody.appendChild(tr);
