@@ -656,7 +656,11 @@
                     <td class="p-5 font-mono text-xs font-bold">${o.id}</td>
                     <td class="p-5">
                         <div class="font-bold text-sm">${o.customerName || o.user}</div>
-                        <div class="text-xs text-gray-500">${o.customerPhone || ''}</div>
+                        <div class="text-xs text-gray-600 my-1">${o.customerAddress || '-'}</div>
+                        <div class="text-xs text-primary font-bold flex items-center gap-1">
+                            <span class="material-symbols-rounded text-[14px]">call</span>
+                            ${o.customerPhone || '-'}
+                        </div>
                     </td>
                     <td class="p-5 text-sm text-gray-500">
                         ${o.dateStr || new Date(o.createdAt).toLocaleDateString()}
