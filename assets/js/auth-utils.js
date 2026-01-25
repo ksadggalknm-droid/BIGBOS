@@ -1,8 +1,7 @@
-// Local Auth System (No Firebase)
 const STORAGE_KEYS = {
-    IS_LOGGED_IN: 'isLoggedIn',
-    CURRENT_USER: 'current_user',
-    USERS_DB: 'users_db'
+    IS_LOGGED_IN: 'bigbos_isLoggedIn',
+    CURRENT_USER: 'bigbos_current_user',
+    USERS_DB: 'bigbos_users_db'
 };
 
 // Default Admin User
