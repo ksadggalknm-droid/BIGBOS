@@ -49,28 +49,21 @@
 
     <script type="module">
         import { getCurrentUser } from './assets/js/auth-utils.js';
+        import { getOrdersByUser, updateOrderStatus } from './assets/js/orders-utils.js';
 
         // Attach cancelOrder to window
         window.cancelOrder = cancelOrder;
 
-        // ฟังก์ชันสำหรับกดยกเลิกสินค้า
-        function cancelOrder(orderId) {
+        async function cancelOrder(orderId) {
             if (!confirm('คุณต้องการยกเลิกคำสั่งซื้อนี้ใช่หรือไม่?')) return;
 
-            // 1. ดึงข้อมูลออเดอร์ทั้งหมดออกมา
-            let allOrders = JSON.parse(localStorage.getItem('order_history')) || [];
-
-            // 2. ค้นหาออเดอร์ที่ user เลือก แล้วเปลี่ยนสถานะ
-            let updatedOrders = allOrders.map(order => {
-                if (order.id === orderId) {
-                    order.status = 'ยกเลิกแล้ว'; // เปลี่ยนสถานะเป็นยกเลิก
-                }
-                return order;
-            });
-
-            // 3. บันทึกกลับลงเครื่องและรีเฟรชหน้าจอ
-            localStorage.setItem('order_history', JSON.stringify(updatedOrders));
-            location.reload();
+            try {
+                // Update to 'cancelled' status
+                await updateOrderStatus(orderId, 'cancelled');
+                location.reload();
+            } catch (e) {
+                alert('เกิดข้อผิดพลาด: ' + e.message);
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -84,9 +77,12 @@
             }
             document.getElementById('user-display').innerText = currentUser.username;
 
-            // ดึงข้อมูลและกรองเฉพาะของ User คนนี้ (Legacy: Localstorage Order History)
-            const allOrders = JSON.parse(localStorage.getItem('order_history')) || [];
-            const myOrders = allOrders.filter(order => order.user === currentUser.username).reverse();
+            // ดึงข้อมูลและกรองเฉพาะของ User คนนี้ (ใช้ Shared Utils)
+            const myOrders = getOrdersByUser(currentUser.username) || [];
+
+            // Note: getOrdersByUser returns saved order (latest first? array.unshift adds to front -> yes)
+            // But if legacy was pushed, it might be ordered differently. 
+            // orders-utils adds to front, so it is naturally reverse chronological.
 
             const container = document.getElementById('history-container');
 
@@ -104,24 +100,32 @@
 
             // วนลูปแสดงรายการสินค้า
             container.innerHTML = myOrders.map(order => {
-                // กำหนดสีและปุ่มตามสถานะ
-                let statusBadgeClass = 'bg-yellow-100 text-yellow-800';
-                let actionButton = '';
-                let itemOpacity = '';
+                // Map status EN -> TH
+                const statusMap = {
+                    'pending': { text: 'รอตรวจสอบ', color: 'bg-yellow-100 text-yellow-800' },
+                    'paid': { text: 'ชำระเงินแล้ว', color: 'bg-blue-100 text-blue-800' },
+                    'shipped': { text: 'จัดส่งสำเร็จ', color: 'bg-green-100 text-green-800' },
+                    'completed': { text: 'สำเร็จ', color: 'bg-green-100 text-green-800' },
+                    'cancelled': { text: 'ยกเลิกแล้ว', color: 'bg-red-100 text-red-800' },
+                    // Legacy fallback
+                    'รอตรวจสอบ': { text: 'รอตรวจสอบ', color: 'bg-yellow-100 text-yellow-800' },
+                    'ยกเลิกแล้ว': { text: 'ยกเลิกแล้ว', color: 'bg-red-100 text-red-800' },
+                };
 
-                if (order.status === 'ยกเลิกแล้ว') {
-                    statusBadgeClass = 'bg-red-100 text-red-800'; // สีแดงเมื่อยกเลิก
-                    itemOpacity = 'opacity-50 grayscale'; // ทำให้สินค้าดูจางลง
-                } else if (order.status === 'จัดส่งสำเร็จ') {
-                    statusBadgeClass = 'bg-green-100 text-green-800';
-                } else {
-                    // ถ้าสถานะปกติ (รอตรวจสอบ) ให้โชว์ปุ่มยกเลิก
+                const statusInfo = statusMap[order.status] || { text: order.status, color: 'bg-gray-100 text-gray-800' };
+                let itemOpacity = (order.status === 'cancelled' || order.status === 'ยกเลิกแล้ว') ? 'opacity-50 grayscale' : '';
+
+                let actionButton = '';
+                if (order.status === 'pending' || order.status === 'รอตรวจสอบ') {
                     actionButton = `
                     <button onclick="cancelOrder('${order.id}')" class="text-red-500 hover:text-red-700 text-xs font-bold underline ml-3">
                         [กดยกเลิกสินค้า]
                     </button>
-                `;
+                    `;
                 }
+
+                // Date Formatting
+                const dateDisplay = order.dateStr || new Date(order.createdAt).toLocaleDateString('th-TH') + ' ' + new Date(order.createdAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
                 return `
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-4">
@@ -132,13 +136,13 @@
                     </div>
                     <div>
                         <p class="text-xs text-gray-500 uppercase font-bold">วันที่</p>
-                        <p class="text-sm">${order.date}</p>
+                        <p class="text-sm">${dateDisplay}</p>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500 uppercase font-bold">สถานะ</p>
                         <div class="flex items-center">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${statusBadgeClass}">
-                                ${order.status}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${statusInfo.color}">
+                                ${statusInfo.text}
                             </span>
                             ${actionButton}
                         </div>
@@ -147,7 +151,7 @@
                 <div class="p-6 space-y-4 ${itemOpacity}">
                     ${order.items.map(item => `
                         <div class="flex items-center gap-4">
-                            <img src="${item.image}" class="w-16 h-16 bg-gray-100 rounded-md object-contain mix-blend-multiply">
+                            <img src="${item.image}" class="w-16 h-16 bg-gray-100 rounded-md object-contain mix-blend-multiply bg-white border border-gray-100">
                             <div class="flex-1">
                                 <h4 class="font-bold text-sm text-primary line-clamp-1">${item.name}</h4>
                                 <p class="text-xs text-gray-500">จำนวน: ${item.quantity} ชิ้น</p>
@@ -157,7 +161,7 @@
                     `).join('')}
                     <div class="pt-4 mt-4 border-t flex justify-between items-center">
                         <span class="text-sm font-bold text-gray-500">ราคารวมทั้งสิ้น</span>
-                        <span class="text-lg font-black text-primary">฿${order.total.toLocaleString()}</span>
+                        <span class="text-lg font-black text-primary">฿${Number(order.total).toLocaleString()}</span>
                     </div>
                 </div>
             </div>

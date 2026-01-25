@@ -17,7 +17,30 @@ function saveOrdersToStorage(orders) {
 
 function initOrderListener(onUpdate) {
     // Initial call
-    onUpdate(getOrders());
+    let orders = getOrders();
+
+    // MIGRATION: Check for legacy data
+    const legacyData = localStorage.getItem('order_history');
+    if (legacyData && orders.length === 0) {
+        try {
+            const legacyOrders = JSON.parse(legacyData);
+            if (legacyOrders.length > 0) {
+                // Migrate them
+                orders = legacyOrders.map(o => ({
+                    ...o,
+                    status: (o.status === 'รอตรวจสอบ') ? 'pending' : (o.status === 'ยกเลิกแล้ว') ? 'cancelled' : o.status,
+                    createdAt: new Date().toISOString() // Approximate
+                }));
+                saveOrdersToStorage(orders);
+                // Optional: Clear legacy? localStorage.removeItem('order_history');
+                // Keeping it for safety for now
+            }
+        } catch (e) {
+            console.error("Migration failed:", e);
+        }
+    }
+
+    onUpdate(orders);
 
     // Listener
     const handler = () => {
