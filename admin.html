@@ -371,7 +371,7 @@
 
     <!-- Logic -->
     <script type="module">
-        import { initUserListener, getCurrentUser, logout, deleteUser } from './assets/js/auth-utils.js';
+        import { initUserListener, getCurrentUser, logout, deleteUser as deleteUserFromAuth } from './assets/js/auth-utils.js';
         import { initProductListener, saveProduct, deleteProduct as deleteProductUtils, restoreDefaultProducts } from './assets/js/products-utils.js';
 
         // Globals
@@ -425,8 +425,6 @@
         function checkAdminAccess() {
             const user = getCurrentUser();
             if (!user || user.role !== 'admin') {
-                // Redirect if not admin (simple protection)
-                // In real app, Firestore rules protect data anyway
                 window.location.href = 'index.html';
             }
         }
@@ -488,7 +486,7 @@
                 tr.innerHTML = `
                     <td class="p-5 w-20">
                         <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-[#333] overflow-hidden border border-gray-200 dark:border-gray-700">
-                            <img src="${p.image}" class="w-full h-full object-cover">
+                            <img src="${p.image}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150'">
                         </div>
                     </td>
                     <td class="p-5 font-bold text-gray-900 dark:text-white">${p.name}</td>
@@ -497,7 +495,7 @@
                          ${displayCategory}
                        </span>
                     </td>
-                    <td class="p-5 font-bold text-primary">฿${p.price.toLocaleString()}</td>
+                    <td class="p-5 font-bold text-primary">฿${Number(p.price).toLocaleString()}</td>
                     <td class="p-5 text-right">
                         <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onclick='editProduct(${JSON.stringify(p)})' class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-blue-50 text-gray-400 hover:text-blue-500 transition-colors">
@@ -525,7 +523,7 @@
                     <td class="p-5">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full ${isAdmin ? 'bg-gradient-to-br from-primary to-[#F4D03F]' : 'bg-gray-100 dark:bg-[#333]'} flex items-center justify-center font-bold ${isAdmin ? 'text-black' : 'text-gray-500'} shadow-sm">
-                                ${u.username.charAt(0).toUpperCase()}
+                                ${u.username ? u.username.charAt(0).toUpperCase() : '?'}
                             </div>
                             <div>
                                 <div class="font-bold text-gray-900 dark:text-white">${u.username}</div>
@@ -567,7 +565,7 @@
         async function deleteUser(id) {
             if (confirm('⚠️ ยืนยันการลบสมาชิกนี้? การกระทำนี้ไม่สามารถย้อนกลับได้')) {
                 try {
-                    await deleteUser(id);
+                    await deleteUserFromAuth(id);
                     // No need to reload, onSnapshot handles it
                 } catch (e) {
                     alert('เกิดข้อผิดพลาด: ' + e.message);
